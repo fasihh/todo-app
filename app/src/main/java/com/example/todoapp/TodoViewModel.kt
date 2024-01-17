@@ -62,9 +62,12 @@ class TodoViewModel(
     }
 
     private fun setContent(title: String, desc: String) {
+        val title = if(title.length > MAX_TITLE_LENGTH) title.substring(0, MAX_TITLE_LENGTH) else title
+        val desc = if(desc.length > MAX_DESC_LENGTH) desc.substring(0, MAX_DESC_LENGTH) else desc
+
         _state.update { it.copy (
-            todoTitle = title.substring(0, MAX_TITLE_LENGTH+1),
-            todoDesc = desc.substring(0, MAX_DESC_LENGTH+1)
+            todoTitle = title,
+            todoDesc = desc
         ) }
     }
 
