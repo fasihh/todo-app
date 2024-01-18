@@ -3,7 +3,6 @@ package com.example.todoapp
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,34 +20,39 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.zIndex
 import com.example.todoapp.ui.theme.Green
 import com.example.todoapp.ui.theme.Red
 import me.saket.swipe.SwipeAction
 import me.saket.swipe.SwipeableActionsBox
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun LazyItemScope.TodoCard(
+fun TodoCard(
     todo: TodoEntity,
     check: () -> Unit,
     close: () -> Unit,
-    edit: () -> Unit)
-{
+    edit: () -> Unit
+) {
     val tweenTime = 200
     val cardColor by animateColorAsState(
         targetValue = if (todo.todoDone) Color(0xFF17181D) else Color(0xFF292C35),
@@ -66,6 +70,14 @@ fun LazyItemScope.TodoCard(
         targetValue = if (todo.todoDone) Color(0xFF9E8E69) else Color(0xFFFFD369),
         animationSpec = tween(tweenTime), label = ""
     )
+
+    val (isVisible, setVisible) = remember{
+        mutableStateOf(false)
+    }
+    val (width, setWidth) = remember {
+        mutableStateOf(0.dp)
+    }
+    val density = LocalDensity.current
 
     val checkAction = SwipeAction(
         icon = {
@@ -102,12 +114,12 @@ fun LazyItemScope.TodoCard(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
+                .onSizeChanged {
+                    setWidth(with(density) { it.width.toDp() })
+                }
                 .shadow(10.dp)
                 .zIndex(1f)
                 .background(cardColor)
-                .animateItemPlacement(
-                    animationSpec = tween(1000)
-                )
                 .clickable {
                     check()
                 }
@@ -136,23 +148,13 @@ fun LazyItemScope.TodoCard(
                             targetState = todo.todoDone,
                             animationSpec = tween(300), label = ""
                         ) { todoDone ->
-                            if (todoDone) {
-                                Icon(
-                                    Icons.Default.Refresh,
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .width(22.dp),
-                                    tint = iconColor
-                                )
-                            } else {
-                                Icon(
-                                    Icons.Default.Check,
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .width(22.dp),
-                                    tint = iconColor
-                                )
-                            }
+                            Icon(
+                                if (todoDone) Icons.Default.Refresh else Icons.Default.Check,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .width(22.dp),
+                                tint = iconColor
+                            )
                         }
 
                     }
@@ -173,47 +175,48 @@ fun LazyItemScope.TodoCard(
                         )
                     }
                 }
-
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(5.dp),
                     modifier = Modifier
                         .padding(5.dp)
                 ) {
-
                     IconButton(
-                        onClick = { edit() },
-                        modifier = Modifier
-                            .shadow(2.dp, shape = CircleShape)
-                            .clip(CircleShape)
-                            .background(iconBackgroundColor)
-                            .size(width = 35.dp, height = 35.dp)
+                        onClick = {
+                            setVisible(true)
+                        }
                     ) {
                         Icon(
-                            Icons.Default.Edit,
+                            Icons.Default.MoreVert,
                             contentDescription = null,
-                            modifier = Modifier
-                                .width(22.dp),
-                            tint = iconColor
-                        )
-                    }
-                    IconButton(
-                        onClick = { close() },
-                        modifier = Modifier
-                            .shadow(2.dp, shape = CircleShape)
-                            .clip(CircleShape)
-                            .background(iconBackgroundColor)
-                            .size(width = 35.dp, height = 35.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.Close,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .width(22.dp),
                             tint = iconColor
                         )
                     }
                 }
             }
+        }
+        DropdownMenu(
+            expanded = isVisible,
+            onDismissRequest = { setVisible(false) },
+            offset = DpOffset(x = width, y = 0.dp)
+        ) {
+            DropdownMenuItem(
+                text = {
+                    Text(text = "Edit")
+                },
+                onClick = {
+                    setVisible(false)
+                    edit()
+                }
+            )
+            DropdownMenuItem(
+                text = {
+                    Text(text = "Delete")
+                },
+                onClick = {
+                    setVisible(false)
+                    close()
+                }
+            )
         }
     }
 }

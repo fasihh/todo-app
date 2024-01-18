@@ -98,7 +98,9 @@ fun TodoScreen(
                     items(state.todoList) {todo ->
                         TodoCard(
                             todo = todo,
-                            check = { onEvent(TodoEvent.UpdateTodo(UpdateType.TASK_DONE, todo)) },
+                            check = {
+                                onEvent(TodoEvent.UpdateTodo(UpdateType.TASK_DONE, todo))
+                            },
                             close = {
                                 onEvent(TodoEvent.ShowDeleteDialog)
                                 onEvent(TodoEvent.SetDeleteTodo(todo))
